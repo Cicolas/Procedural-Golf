@@ -1,0 +1,14 @@
+{
+    "Lua.diagnostics.globals": [
+        "love",
+        "class",
+        "o",
+        "text",
+        "beginContact",
+        "persisting",
+        "preSolve",
+        "postSolve",
+        "endContact",
+        "unpack"
+    ]
+}
