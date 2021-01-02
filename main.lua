@@ -1,12 +1,12 @@
 --map creator 0=nothing 1=floor 2=wall 8=start 9=goal
---local push = require("push")
+local push = require("push")
 require("phys")
 
 local love = love
 
-MAPWIDTH, MAPHEIGHT = 10, 10
---GameWidth, GameHeight = 800, 600 --fixed game resolution
---WindowWidth, WindowHeight = 800, 600
+MAPWIDTH, MAPHEIGHT = 6, 6
+GameWidth, GameHeight = 800, 600 --fixed game resolution
+WindowWidth, WindowHeight = 1280, 720
 
 Won = false
 
@@ -28,7 +28,7 @@ local line = {}
 local points = 0
 
 function love.load(arg)
-  --push:setupScreen(GameWidth, GameHeight, WindowWidth, WindowHeight, {fullscreen = false, pixelperfect = true, resizable = true, stretched = false})
+  push:setupScreen(GameWidth, GameHeight, WindowWidth, WindowHeight, {fullscreen = false, pixelperfect = false, resizable = true, stretched = false})
   love.graphics.setFont(love.graphics.newFont("fonts/Lato-bold.ttf", 56))
   
   mundo:setCallbacks(CollisionOnEnter, CollisionOnEnd, CollisionOnStay, postSolve)
@@ -87,7 +87,9 @@ function love.draw()
   end
   ]]--
 
-  --push:start()
+  push:start()
+    love.graphics.setColor({255/255, 228/255, 94/255})
+    love.graphics.rectangle("fill", 0, 0, GameWidth, GameHeight)
     love.graphics.setColor(0, 0, 0, 1)
     love.graphics.print(points, 13, 3)
     love.graphics.setColor(1, 1, 1, 1)
@@ -107,18 +109,20 @@ function love.draw()
     if love.mouse.isDown(1) and vx == 0 and vy == 0 then
       love.graphics.line(ball.body:getX(), ball.body:getY(), ballGoX, ballGoY)
     end
-  --push:finish()
+  push:finish()
 end
 
 --gameplay
 
 function love.update(dt)
+  local updatedMX, updatedMY = love.mouse.getPosition()
+
   table.insert(line,ball.body:getX())
   table.insert(line,ball.body:getY())
 
   mundo:update(dt)
-  ballGoX = ball.body:getX()+(mx-love.mouse.getX())
-  ballGoY = ball.body:getY()+(my-love.mouse.getY())
+  ballGoX = ball.body:getX()+(mx-updatedMX)
+  ballGoY = ball.body:getY()+(my-updatedMY)
 
 
   vx, vy = ball.body:getLinearVelocity()
@@ -158,14 +162,14 @@ end
 
 function love.mousepressed(x, y, button, isTouch)
   if button == 1 then
-    mx = x
-    my = y
+    mx, my = love.mouse.getPosition()
   end
 end
 
 function love.mousereleased(x, y, button, isTouch)
   if button == 1 and vx == 0 and vy == 0 then
-    Release(math.atan2(my-y, mx-x), Normalize(mx-x, my-y))
+    local fx, fy = (mx-x)/(love.graphics.getWidth()/push:getWidth()), (my-y)/(love.graphics.getHeight()/push:getHeight())
+    Release(math.atan2(my-y, mx-x), Normalize(fx, fy))
   end
 end
 
@@ -176,7 +180,7 @@ function love.keypressed(key, scancode, isrepeat)
 end
 
 function love.resize(w, h)
-  --return push:resize(w, h)
+  return push:resize(w, h)
 end
 
 function Release (angle, force)
@@ -358,8 +362,8 @@ function CreateRandMap(width, heigth)
 end
 
 function SetInWorld(width, heigth)
-  local initialX = love.graphics.getWidth()/2-(width*32/2)-16
-  local initialY = love.graphics.getHeight()/2-(heigth*32/2)-16
+  local initialX = GameWidth/2-(width*32/2)-16
+  local initialY = GameHeight/2-(heigth*32/2)-16
 
   local o = o
 
