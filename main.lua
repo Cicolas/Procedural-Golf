@@ -5,7 +5,7 @@ require("phys")
 local love = love
 
 MAPWIDTH, MAPHEIGHT = 6, 6
-GameWidth, GameHeight = 800, 600 --fixed game resolution
+GameWidth, GameHeight = love.graphics.getDimensions() --fixed game resolution
 WindowWidth, WindowHeight = 1280, 720
 
 Won = false
