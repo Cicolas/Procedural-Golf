@@ -1,12 +1,12 @@
 --map creator 0=nothing 1=floor 2=wall 8=start 9=goal
---local push = require("push")
+local push = require("push")
 require("phys")
 
 local love = love
 
 MAPWIDTH, MAPHEIGHT = 10, 10
---GameWidth, GameHeight = 800, 600 --fixed game resolution
---WindowWidth, WindowHeight = 800, 600
+WindowWidth, WindowHeight = love.window.getDesktopDimensions()
+GameWidth, GameHeight = WindowWidth, WindowHeight --fixed game resolution
 
 Won = false
 
@@ -28,8 +28,8 @@ local line = {}
 local points = 0
 
 function love.load(arg)
-  --push:setupScreen(GameWidth, GameHeight, WindowWidth, WindowHeight, {fullscreen = false, pixelperfect = true, resizable = true, stretched = false})
-  love.graphics.setFont(love.graphics.newFont("fonts/Lato-bold.ttf", 56))
+  push:setupScreen(GameWidth, GameHeight, WindowWidth, WindowHeight, {fullscreen = true, pixelperfect = false, resizable = true, stretched = false})
+  --love.graphics.setFont(love.graphics.newFont("fonts/Lato-bold.ttf", 56))
   
   mundo:setCallbacks(CollisionOnEnter, CollisionOnEnd, CollisionOnStay, postSolve)
   ball.fixture:setUserData("ball")
@@ -87,7 +87,9 @@ function love.draw()
   end
   ]]--
 
-  --push:start()
+  push:start()
+    love.graphics.setColor({255/255, 228/255, 94/255})
+    --love.graphics.rectangle("fill", 0, 0, 1280, 720)
     love.graphics.setColor(0, 0, 0, 1)
     love.graphics.print(points, 13, 3)
     love.graphics.setColor(1, 1, 1, 1)
@@ -107,7 +109,7 @@ function love.draw()
     if love.mouse.isDown(1) and vx == 0 and vy == 0 then
       love.graphics.line(ball.body:getX(), ball.body:getY(), ballGoX, ballGoY)
     end
-  --push:finish()
+  push:finish()
 end
 
 --gameplay
@@ -165,6 +167,9 @@ end
 
 function love.mousereleased(x, y, button, isTouch)
   if button == 1 and vx == 0 and vy == 0 then
+    if isTouch then
+      Release(math.atan2((my-y)/2, (mx-x)), Normalize((mx-x)/2, (my-y)/2))
+    end
     Release(math.atan2(my-y, mx-x), Normalize(mx-x, my-y))
   end
 end
@@ -176,7 +181,7 @@ function love.keypressed(key, scancode, isrepeat)
 end
 
 function love.resize(w, h)
-  --return push:resize(w, h)
+  return push:resize(w, h)
 end
 
 function Release (angle, force)
@@ -358,8 +363,8 @@ function CreateRandMap(width, heigth)
 end
 
 function SetInWorld(width, heigth)
-  local initialX = love.graphics.getWidth()/2-(width*32/2)-16
-  local initialY = love.graphics.getHeight()/2-(heigth*32/2)-16
+  local initialX = WindowWidth/2-(width*32/2)-16
+  local initialY = WindowHeight/2-(heigth*32/2)-16
 
   local o = o
 

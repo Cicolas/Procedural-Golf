@@ -3,6 +3,6 @@ function love.conf (t)
   t.console = true
   t.window.msaa = 16
   t.window.vsync = true
-  t.window.width = 800
-  t.window.height = 600
+  t.window.width = 1280
+  t.window.height = 720
 end
