@@ -4,9 +4,9 @@ require("phys")
 
 local love = love
 
-MAPWIDTH, MAPHEIGHT = 10, 10
-WindowWidth, WindowHeight = love.window.getDesktopDimensions()
-GameWidth, GameHeight = WindowWidth, WindowHeight --fixed game resolution
+MAPWIDTH, MAPHEIGHT = 6, 6
+GameWidth, GameHeight = 800, 600 --fixed game resolution
+WindowWidth, WindowHeight = 1280, 720
 
 Won = false
 
@@ -28,8 +28,8 @@ local line = {}
 local points = 0
 
 function love.load(arg)
-  push:setupScreen(GameWidth, GameHeight, WindowWidth, WindowHeight, {fullscreen = true, pixelperfect = false, resizable = true, stretched = false})
-  --love.graphics.setFont(love.graphics.newFont("fonts/Lato-bold.ttf", 56))
+  push:setupScreen(GameWidth, GameHeight, WindowWidth, WindowHeight, {fullscreen = false, pixelperfect = false, resizable = true, stretched = false, mssa = 0})
+  love.graphics.setFont(love.graphics.newFont("fonts/Lato-bold.ttf", 56))
   
   mundo:setCallbacks(CollisionOnEnter, CollisionOnEnd, CollisionOnStay, postSolve)
   ball.fixture:setUserData("ball")
@@ -53,43 +53,15 @@ function love.load(arg)
 end
 
 function love.draw()
-  love.graphics.setBackgroundColor({255/255, 228/255, 94/255})
+  --love.graphics.setColor({255/255, 228/255, 94/255})
+  --love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.het)
 
   local x = 0
   local y = 0
 
-  --[[
-  for i=1, string.len(mapTxt) do
-    char = string.sub(mapTxt, i, i)
-    if char == '0' then
-      love.graphics.setColor(0, 0, 0, 0)
-      x = x + 32
-    elseif char == '1' then
-      love.graphics.setColor(0, 1, 0, 1)
-      love.graphics.rectangle("fill", x, y, 32, 32)
-      x = x + 32
-    elseif char == '2' then
-      love.graphics.setColor(0, 0, 1, 1)
-      love.graphics.rectangle("fill", x, y, 32, 32)
-      x = x + 32
-    elseif char == '8' then
-      love.graphics.setColor(1, 0, 0, 1)
-      love.graphics.rectangle("fill", x, y, 32, 32)
-      x = x + 32
-    elseif char == '9' then
-      love.graphics.setColor(1, 0, 1, 1)
-      love.graphics.rectangle("fill", x, y, 32, 32)
-      x = x + 32
-    elseif char == ' ' or char == '\n' then
-      y = y + 32
-      x = 0
-    end
-  end
-  ]]--
-
   push:start()
     love.graphics.setColor({255/255, 228/255, 94/255})
-    --love.graphics.rectangle("fill", 0, 0, 1280, 720)
+    love.graphics.rectangle("fill", 0, 0, GameWidth, GameHeight)
     love.graphics.setColor(0, 0, 0, 1)
     love.graphics.print(points, 13, 3)
     love.graphics.setColor(1, 1, 1, 1)
@@ -115,12 +87,14 @@ end
 --gameplay
 
 function love.update(dt)
+  local updatedMX, updatedMY = love.mouse.getPosition()
+
   table.insert(line,ball.body:getX())
   table.insert(line,ball.body:getY())
 
   mundo:update(dt)
-  ballGoX = ball.body:getX()+(mx-love.mouse.getX())
-  ballGoY = ball.body:getY()+(my-love.mouse.getY())
+  ballGoX = ball.body:getX()+(mx-updatedMX)
+  ballGoY = ball.body:getY()+(my-updatedMY)
 
 
   vx, vy = ball.body:getLinearVelocity()
@@ -160,17 +134,14 @@ end
 
 function love.mousepressed(x, y, button, isTouch)
   if button == 1 then
-    mx = x
-    my = y
+    mx, my = love.mouse.getPosition()
   end
 end
 
 function love.mousereleased(x, y, button, isTouch)
   if button == 1 and vx == 0 and vy == 0 then
-    if isTouch then
-      Release(math.atan2((my-y)/2, (mx-x)), Normalize((mx-x)/2, (my-y)/2))
-    end
-    Release(math.atan2(my-y, mx-x), Normalize(mx-x, my-y))
+    local fx, fy = (mx-x)/(love.graphics.getWidth()/push:getWidth()), (my-y)/(love.graphics.getHeight()/push:getHeight())
+    Release(math.atan2(my-y, mx-x), Normalize(fx, fy))
   end
 end
 
@@ -363,8 +334,8 @@ function CreateRandMap(width, heigth)
 end
 
 function SetInWorld(width, heigth)
-  local initialX = WindowWidth/2-(width*32/2)-16
-  local initialY = WindowHeight/2-(heigth*32/2)-16
+  local initialX = GameWidth/2-(width*32/2)-16
+  local initialY = GameHeight/2-(heigth*32/2)-16
 
   local o = o
 
