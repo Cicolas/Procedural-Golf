@@ -1,4 +1,4 @@
-require("class")
+require("scripts.class")
 
 local love = love
 
@@ -64,12 +64,6 @@ function CollisionOnEnd(a, b, coll)
 end
 
 function CollisionOnStay(a, b, coll)
-  if persisting == 0 then    -- only say when they first start touching
-    --print("\n"..a:getUserData().." touching "..b:getUserData())
-  elseif persisting < 20 then    -- then just start counting
-    --print(persisting)
-  end
-
   persisting = persisting + 1    -- keep track of how many updates they've been touching for
 end
 

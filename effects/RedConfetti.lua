@@ -1,0 +1,16 @@
+return function()
+  ps = love.graphics.newParticleSystem(love.graphics.newImage("effects/default.png"),1000)
+  ps:setColors(1,0,0,1,1,0,0,1)
+  ps:setEmissionArea('normal',800,0,-0)
+  ps:setEmissionRate(100)
+  ps:setInsertMode("bottom")
+  ps:setLinearAcceleration(0,3,0,3)
+  ps:setLinearDamping(0,0)
+  ps:setParticleLifetime(10,10)
+  ps:setRadialAcceleration(0,0)
+  ps:setRotation(1,5)
+  ps:setSizeVariation(0)
+  ps:setSpin(0,0)
+  ps:setTangentialAcceleration(0,0)
+  return ps
+end

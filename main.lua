@@ -1,10 +1,11 @@
 --map creator 0=nothing 1=floor 2=wall 8=start 9=goal
-local push = require("push")
+local push = require("scripts.push")
+local effects = require("effects")
 require("phys")
 
 local love = love
 
-MAPWIDTH, MAPHEIGHT = 6, 6
+MAPWIDTH, MAPHEIGHT = 8, 8
 GameWidth, GameHeight = 800, 600 --fixed game resolution
 WindowWidth, WindowHeight = 1280, 720
 
@@ -81,6 +82,8 @@ function love.draw()
     if love.mouse.isDown(1) and vx == 0 and vy == 0 then
       love.graphics.line(ball.body:getX(), ball.body:getY(), ballGoX, ballGoY)
     end
+
+    effects.draw()
   push:finish()
 end
 
@@ -128,6 +131,8 @@ function love.update(dt)
     points = points+1
   end
 
+  effects.update(dt)
+
   --print("vx: "..vx.." vy: "..vy)
 end
 
@@ -135,6 +140,7 @@ end
 function love.mousepressed(x, y, button, isTouch)
   if button == 1 then
     mx, my = love.mouse.getPosition()
+    -- effects.burst("RedConfetti")
   end
 end
 
@@ -171,15 +177,15 @@ function Sign (number)
  end
 end
 
-function Xor(a, b)
-  if a == true and b == true then
-    return false
-  elseif a == false and b == false then
-    return false
-  else
-    return true
-  end
-end
+-- function Xor(a, b)
+--   if a == true and b == true then
+--     return false
+--   elseif a == false and b == false then
+--     return false
+--   else
+--     return true
+--   end
+-- end
 
 function WriteInMap(x, y, w, a)
   local offset = ((y-1)*w)+(y-1)
