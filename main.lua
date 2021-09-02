@@ -1,6 +1,7 @@
 --map creator 0=nothing 1=floor 2=wall 8=start 9=goal
 local push = require("scripts.push")
 local effects = require("effects")
+require("UI")
 require("phys")
 
 local love = love
@@ -11,12 +12,12 @@ WindowWidth, WindowHeight = 1280, 720
 
 Won = false
 
+local UICanvas = love.graphics.newCanvas();
 --mapTxt = love.filesystem.read("mapa.txt")
 local mapTxt = ""
 local char = ''
 
 local mundo = love.physics.newWorld(0, 0, true) --create a world for the bodies to exist in with horizontal gravity of 0 and vertical gravity of 9.81
-
 local walls = {}
 local ball = CircObject(mundo, 400, 300, 5, "dynamic", 1)
 
@@ -25,113 +26,115 @@ local mx, my = 0, 0
 local ballGoX, ballGoY = 0, 0
 
 local line = {}
+local points = -1
 
-local points = 0
+local state = 3; --0 notihng; 1 menu; 2 playing; 3 waiting
 
 function love.load(arg)
   push:setupScreen(GameWidth, GameHeight, WindowWidth, WindowHeight, {fullscreen = false, pixelperfect = false, resizable = true, stretched = false, mssa = 0})
   love.graphics.setFont(love.graphics.newFont("fonts/Lato-bold.ttf", 56))
-  
+ 
   mundo:setCallbacks(CollisionOnEnter, CollisionOnEnd, CollisionOnStay, postSolve)
   ball.fixture:setUserData("ball")
 
-  CreateRandMap(MAPWIDTH, MAPHEIGHT)
-  
-  RectObject(mundo, -5, 300, 10, 600, "static", 1)
-  RectObject(mundo, 805, 300, 10, 600, "static", 1)
-  
-  RectObject(mundo, 400, -5, 800, 10, "static", 1)
-  RectObject(mundo, 400, 605, 800, 10, "static", 1)
+  NextLevel()
+  -- ShowWinUI(points)
+  UILoad()
 
   --mapTxt = MapReader(mapTxt)
 
-  table.insert(line,ball.body:getX())
-  table.insert(line,ball.body:getY())
-
-  SetInWorld(MAPWIDTH, MAPHEIGHT)
-
-  CerterBall()
+  UICanvas = love.graphics.newCanvas(love.graphics.getWidth(), love.graphics.getHeight())
 end
 
 function love.draw()
   --love.graphics.setColor({255/255, 228/255, 94/255})
   --love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.het)
+  love.graphics.clear({255/255, 228/255, 94/255}, 0)
 
-  local x = 0
-  local y = 0
+  if state == 3 or state == 2 then
+    local x = 0
+    local y = 0
 
-  push:start()
-    love.graphics.setColor({255/255, 228/255, 94/255})
-    love.graphics.rectangle("fill", 0, 0, GameWidth, GameHeight)
+    --UICANVAS ON PLAYING
+    love.graphics.setCanvas(UICanvas)
+    love.graphics.clear(0, 0, 0, 0)
     love.graphics.setColor(0, 0, 0, 1)
     love.graphics.print(points, 13, 3)
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.print(points, 10, 0)
-
-    for key, value in pairs(walls) do
-      love.graphics.setColor(value.color)
-      value:draw()
-    end
-
+    love.graphics.setCanvas()
+  
+    love.graphics.push()
+    push:start()
+      love.graphics.clear({255/255, 228/255, 94/255}, 0)
+  
+      for key, value in pairs(walls) do
+        love.graphics.setColor(value.color)
+        value:draw()
+      end
+  
+      love.graphics.setColor(1, 1, 1, 1)
+  
+      love.graphics.circle("fill", math.floor(ball.body:getX()), math.floor(ball.body:getY()), ball.shape:getRadius())
+  
+      --love.graphics.line(line)
+  
+      if love.mouse.isDown(1) and vx == 0 and vy == 0 then
+        love.graphics.line(ball.body:getX(), ball.body:getY(), ballGoX, ballGoY)
+      end
+  
+      -- effects.draw()
+    push:finish() 
+    love.graphics.pop()
+    
     love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.draw(UICanvas, 0, 0)
 
-    love.graphics.circle("fill", ball.body:getX(), ball.body:getY(), ball.shape:getRadius())
+    if state == 3 then
+      love.graphics.setCanvas(UICanvas)
+      love.graphics.clear(0, 0, 0, 0)
+      UIDraw(points+1)
+      love.graphics.setCanvas()
 
-    --love.graphics.line(line)
-
-    if love.mouse.isDown(1) and vx == 0 and vy == 0 then
-      love.graphics.line(ball.body:getX(), ball.body:getY(), ballGoX, ballGoY)
+      love.graphics.setColor(1, 1, 1, 1)
+      love.graphics.draw(UICanvas, 0, 0)
     end
-
-    effects.draw()
-  push:finish()
+  end 
 end
 
 --gameplay
 
 function love.update(dt)
-  local updatedMX, updatedMY = love.mouse.getPosition()
+  if state == 2 then
+    local updatedMX, updatedMY = love.mouse.getPosition()
 
-  table.insert(line,ball.body:getX())
-  table.insert(line,ball.body:getY())
+    table.insert(line,ball.body:getX())
+    table.insert(line,ball.body:getY())
 
-  mundo:update(dt)
-  ballGoX = ball.body:getX()+(mx-updatedMX)
-  ballGoY = ball.body:getY()+(my-updatedMY)
+    mundo:update(dt)
+    ballGoX = ball.body:getX()+(mx-updatedMX)
+    ballGoY = ball.body:getY()+(my-updatedMY)
 
+    vx, vy = ball.body:getLinearVelocity()
 
-  vx, vy = ball.body:getLinearVelocity()
-
-  if vx < 5 and vx > -5 and vy < 5 and vy > -5 then
-    vx = 0
-    vy = 0
-    ball.body:setLinearVelocity(0, vy)
-    ball.body:setLinearVelocity(vx, 0)
-  end
-
-  if not (vx == 0 and vy == 0) then
-    ball.body:setLinearVelocity(vx*.975, vy*.975)
-  end
-
-  if Won and vx == 0 and vy == 0 then
-    print("won!!!")
-    
-    for i = 1, #walls do
-      walls[i].body:destroy()
+    if vx < 5 and vx > -5 and vy < 5 and vy > -5 then
+      vx = 0
+      vy = 0
+      ball.body:setLinearVelocity(0, vy)
+      ball.body:setLinearVelocity(vx, 0)
     end
 
-    walls = {}
+    if not (vx == 0 and vy == 0) then
+      ball.body:setLinearVelocity(vx*.975, vy*.975)
+    end
 
-    CreateRandMap(MAPWIDTH, MAPHEIGHT)
-    SetInWorld(MAPWIDTH, MAPHEIGHT)
-    CerterBall()
-
-    Won = false
-    
-    points = points+1
+    if Won and vx == 0 and vy == 0 then
+      ShowWinUI()
+    end
   end
+ 
 
-  effects.update(dt)
+  -- effects.update(dt)
 
   --print("vx: "..vx.." vy: "..vy)
 end
@@ -140,14 +143,19 @@ end
 function love.mousepressed(x, y, button, isTouch)
   if button == 1 then
     mx, my = love.mouse.getPosition()
+    if state == 3 then
+      NextLevel()
+    end
     -- effects.burst("RedConfetti")
   end
 end
 
 function love.mousereleased(x, y, button, isTouch)
-  if button == 1 and vx == 0 and vy == 0 then
-    local fx, fy = (mx-x)/(love.graphics.getWidth()/push:getWidth()), (my-y)/(love.graphics.getHeight()/push:getHeight())
-    Release(math.atan2(my-y, mx-x), Normalize(fx, fy))
+  if state == 2 then
+    if button == 1 and vx == 0 and vy == 0 then
+      local fx, fy = (mx-x)/(love.graphics.getWidth()/push:getWidth()), (my-y)/(love.graphics.getHeight()/push:getHeight())
+      Release(math.atan2(my-y, mx-x), Normalize(fx, fy))
+    end
   end
 end
 
@@ -158,6 +166,9 @@ function love.keypressed(key, scancode, isrepeat)
 end
 
 function love.resize(w, h)
+  WindowWidth = w
+  WindowHeight = h
+  UIResize()
   return push:resize(w, h)
 end
 
@@ -388,4 +399,26 @@ function CerterBall()
       ball.body:setPosition(value.body:getX(), value.body:getY())
     end
   end
+end
+
+function NextLevel()
+  state = 2
+
+  for i = 1, #walls do
+    walls[i].body:destroy()
+  end
+
+  walls = {}
+
+  CreateRandMap(MAPWIDTH, MAPHEIGHT)
+  SetInWorld(MAPWIDTH, MAPHEIGHT)
+  CerterBall()
+
+  Won = false
+
+  points = points+1
+end
+
+function ShowWinUI()
+  state = 3
 end
