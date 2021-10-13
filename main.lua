@@ -27,13 +27,15 @@ local ballGoX, ballGoY = 0, 0
 
 local line = {}
 local points = -1
+local plays = 0
+local time = 0
 
-local state = 3; --0 notihng; 1 menu; 2 playing; 3 waiting
+local state = 3 --0 notihng; 1 menu; 2 playing; 3 waiting
 
 function love.load(arg)
   push:setupScreen(GameWidth, GameHeight, WindowWidth, WindowHeight, {fullscreen = false, pixelperfect = false, resizable = true, stretched = false, mssa = 0})
   love.graphics.setFont(love.graphics.newFont("fonts/Lato-bold.ttf", 56))
- 
+
   mundo:setCallbacks(CollisionOnEnter, CollisionOnEnd, CollisionOnStay, postSolve)
   ball.fixture:setUserData("ball")
 
@@ -63,49 +65,50 @@ function love.draw()
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.print(points, 10, 0)
     love.graphics.setCanvas()
-  
+
     love.graphics.push()
     push:start()
       love.graphics.clear({255/255, 228/255, 94/255}, 0)
-  
+
       for key, value in pairs(walls) do
         love.graphics.setColor(value.color)
         value:draw()
       end
-  
+
       love.graphics.setColor(1, 1, 1, 1)
-  
+
       love.graphics.circle("fill", math.floor(ball.body:getX()), math.floor(ball.body:getY()), ball.shape:getRadius())
-  
+
       --love.graphics.line(line)
-  
+
       if love.mouse.isDown(1) and vx == 0 and vy == 0 then
         love.graphics.line(ball.body:getX(), ball.body:getY(), ballGoX, ballGoY)
       end
-  
-      -- effects.draw()
-    push:finish() 
+
+      effects.draw()
+    push:finish()
     love.graphics.pop()
-    
+
     love.graphics.setColor(1, 1, 1, 1)
     love.graphics.draw(UICanvas, 0, 0)
 
     if state == 3 then
       love.graphics.setCanvas(UICanvas)
       love.graphics.clear(0, 0, 0, 0)
-      UIDraw(points+1)
+      UIDraw(points+1, plays, time)
       love.graphics.setCanvas()
 
       love.graphics.setColor(1, 1, 1, 1)
       love.graphics.draw(UICanvas, 0, 0)
     end
-  end 
+  end
 end
 
 --gameplay
 
 function love.update(dt)
   if state == 2 then
+    time = time+dt
     local updatedMX, updatedMY = love.mouse.getPosition()
 
     table.insert(line,ball.body:getX())
@@ -132,9 +135,8 @@ function love.update(dt)
       ShowWinUI()
     end
   end
- 
 
-  -- effects.update(dt)
+  effects.update(dt)
 
   --print("vx: "..vx.." vy: "..vy)
 end
@@ -146,7 +148,9 @@ function love.mousepressed(x, y, button, isTouch)
     if state == 3 then
       NextLevel()
     end
-    -- effects.burst("RedConfetti")
+    if state == 2 then
+      plays = plays+1
+    end
   end
 end
 
@@ -230,7 +234,7 @@ function FillMap(width, heigth)
 
       if GetInMap(j, i-1, width) == "2" then
         d = 1
-      end 
+      end
 
       if a+b+c+d >= 3 then
         WriteInMap(j, i, width, "2")
@@ -249,7 +253,7 @@ end
 
 function MapReader (str)
   str = string.gsub(str, " ", "")
-  print(str)
+  -- print(str)
 
   for i=1, string.len(str) do
     char = string.sub(str, i, i)
@@ -417,8 +421,14 @@ function NextLevel()
   Won = false
 
   points = points+1
+  time = 0
+  plays = 0
 end
 
 function ShowWinUI()
   state = 3
+
+  effects.burst("RedConfetti")
+  effects.burst("GreenConfetti")
+  effects.burst("BlueConfetti")
 end

@@ -1,6 +1,6 @@
 return function()
   local ps = love.graphics.newParticleSystem(love.graphics.newImage("effects/default.png"),500)
-  ps:setColors(1,0,0,1,1,0,0,1)
+  ps:setColors(29/255, 219/255, 48/255,1,29/255, 219/255, 48/255,1)
   ps:setEmissionArea('normal',800,0,-0)
   ps:setEmissionRate(100)
   ps:setInsertMode("bottom")

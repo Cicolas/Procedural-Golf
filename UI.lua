@@ -7,7 +7,7 @@ UILoad = function ()
     UIResize()
 end
 
-UIDraw = function(Level)
+UIDraw = function(Level, plays, time)
     love.graphics.setColor(0, 0, 0, .75)
     love.graphics.rectangle("fill", left, top, width, height)
 
@@ -35,31 +35,17 @@ UIDraw = function(Level)
     0,
     .4, .4
     )
-    love.graphics.printf("Level Dificulty:", 
-    left+30, top+(height/2)+30,
-    width*2.5,
-    "left",
-    0,
-    .4, .4
-    )
 
     --values
-    love.graphics.printf("10", 
+    love.graphics.printf(string.format( "%.2f", time).." s", 
     left-30, top+(height/2)-30,
     width*2.5,
     "right",
     0,
     .4, .4
     )
-    love.graphics.printf("10", 
+    love.graphics.printf(plays, 
     left-30, top+(height/2),
-    width*2.5,
-    "right",
-    0,
-    .4, .4
-    )
-    love.graphics.printf("10", 
-    left-30, top+(height/2)+30,
     width*2.5,
     "right",
     0,
