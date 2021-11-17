@@ -32,9 +32,11 @@ local time = 0
 
 local state = 3 --0 notihng; 1 menu; 2 playing; 3 waiting
 
+local font = love.graphics.newFont("/fonts/latobold.ttf", 56)
+
 function love.load(arg)
   push:setupScreen(GameWidth, GameHeight, WindowWidth, WindowHeight, {fullscreen = false, pixelperfect = false, resizable = true, stretched = false, mssa = 0})
-  love.graphics.setFont(love.graphics.newFont("fonts/Lato-bold.ttf", 56))
+  love.graphics.setFont(font)
 
   mundo:setCallbacks(CollisionOnEnter, CollisionOnEnd, CollisionOnStay, postSolve)
   ball.fixture:setUserData("ball")
@@ -145,11 +147,11 @@ end
 function love.mousepressed(x, y, button, isTouch)
   if button == 1 then
     mx, my = love.mouse.getPosition()
-    if state == 3 then
-      NextLevel()
-    end
     if state == 2 then
       plays = plays+1
+    end
+    if state == 3 then
+      NextLevel()
     end
   end
 end
